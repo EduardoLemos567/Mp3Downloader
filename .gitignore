@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+DownloadMp3.code-workspace
+.vscode/
+temp/
+downloads/

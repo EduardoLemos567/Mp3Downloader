@@ -1,0 +1,12 @@
+[project]
+name = "Mp3Downloader"
+description = "A Mp3Downloader to download yt musics into mp3 files. "
+version = "1.0.0"
+authors = [{ name = "Eduardo Lemos" }]
+license = "MIT"
+
+dependencies = ["yt_dlp>=2025.7.21", "ytmusicapi>=1.11.0"]
+requires-python = ">=3.14"
+
+[project.urls]
+Repository = "https://github.com/EduardoLemos567/Mp3Downloader.git"
