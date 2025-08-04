@@ -1,4 +1,4 @@
-import typing
+import typing, logging
 from logging import Logger
 from pathlib import Path
 import yt_dlp
@@ -20,7 +20,8 @@ def download_yt_audio(logger: Logger, url: str, output_path: Path) -> None:
 
     # Ensure output folder exists
     output_path.parent.mkdir(parents=True, exist_ok=True)
-
+    disabled_yt_logger = logging.getLogger("ytmusicapi")
+    disabled_yt_logger.disabled = True
     ydl_opts: dict[str, typing.Any] = {
         "format": "bestaudio/best",
         "postprocessors": [
@@ -33,6 +34,7 @@ def download_yt_audio(logger: Logger, url: str, output_path: Path) -> None:
         "outtmpl": str(output_path.with_suffix("")),
         "quiet": False,
         "no_warnings": False,
+        "logger": disabled_yt_logger,
     }
 
     try:

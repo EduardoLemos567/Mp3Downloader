@@ -7,6 +7,7 @@ class Config:
     # Define the configuration for the application.
     # Where to save the downloaded files.
     DOWNLOAD_FOLDER: typing.Final[str] = "./downloads"
+    DOWNLOAD_FOLDER_PATH: typing.Final[Path] = Path(DOWNLOAD_FOLDER)
     # Temporary folder for processing files.
     TEMP_FOLDER: typing.Final[str] = "./temp"
     LOG_FILE: typing.Final[str] = f"{AppMeta.NAME}.log"
@@ -18,3 +19,5 @@ class Config:
     # Save links extracted from the playlist.html
     PLAYLIST_JSON: typing.Final[str] = "playlist.json"
     PLAYLIST_JSON_PATH: typing.Final[Path] = Path(TEMP_FOLDER, PLAYLIST_JSON)
+    # Supported tags: artist, title, album. Extension is not needed, it will be added .mp3
+    FILE_NAME_TEMPLATE: typing.Final[str] = "{artist} - {title}"

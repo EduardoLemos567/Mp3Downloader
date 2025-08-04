@@ -7,23 +7,29 @@ from data.mp3 import Mp3
 import logic.playlist as playlist
 import logic.downloads as downloads
 import logic.update_tags as update_tags
+import logic.progress_bar as progress_bar
 from constants import AppMeta
 from config import Config
 
 
 class App:
-    def __init__(self, playlist_url: str):
+    def __init__(
+        self,
+        playlist_url: str,
+        console_log_level: int = logging.INFO,
+        file_log_level: int = logging.WARNING,
+    ):
         self.logger: Logger
-        self.progress_bar: utils.ProgressBar
+        self.progress_bar: progress_bar.ProgressBar
         self.state: State
         try:
             self.logger = utils.setup_logger(
-                AppMeta.NAME, Config.LOG_FILE_PATH, console_level=logging.DEBUG
+                AppMeta.NAME, Config.LOG_FILE_PATH, file_log_level, console_log_level
             )
         except Exception as e:
             print(f"Failed to set up logger: '{e}'. Exiting.")
             self._quit(1)
-        self.progress_bar = utils.ProgressBar(total=1000)
+        self.progress_bar = progress_bar.ProgressBar(total=1000)
         if Config.CONTROL_FILE_PATH.exists():
             try:
                 self.state = self._load_state()
@@ -42,10 +48,14 @@ class App:
             Config.PLAYLIST_JSON_PATH.unlink(missing_ok=True)
         # Remove Mp3 that were DOWNLOADED, if they are missing.
         for mp3 in self.state.mp3s:
-            if mp3.state is (Mp3.State.DOWNLOADED, Mp3.State.DONE):
+            if mp3.state in (Mp3.State.DOWNLOADED, Mp3.State.DONE):
+                print(mp3)
                 assert mp3.file_path is not None
                 if not mp3.file_path.exists():
                     self.state.remove(mp3)
+                    self.logger.debug(
+                        f"Removed control entry for missing file '{mp3.file_path.name}'"
+                    )
 
     def run(self):
         try:
@@ -59,9 +69,9 @@ class App:
                 self.progress_bar.update(100, prefix="Downloading files")
                 self._process_files()
 
-                self.logger.info("All files processed successfully.")
+                self.logger.debug("All files processed successfully.")
             else:
-                self.logger.info("No files to process.")
+                self.logger.debug("No files to process.")
 
             self.progress_bar.done("Done")
 
@@ -97,7 +107,6 @@ class App:
         mp3s = playlist.scrap_playlist(
             self.state.playlist_url_id, self.logger, Config.PLAYLIST_JSON_PATH
         )
-        print(mp3s)
         total = 0
         for mp3 in mp3s:
             if mp3.url_id in self.state.urls:
@@ -109,15 +118,24 @@ class App:
     def _process_files(self) -> None:
         progress_left = 900
         increment = progress_left / len(self.state.work_queue)
+        actual = 0
+        total = len(self.state.work_queue)
+        self.progress_bar.update(0, prefix=f"Processing {actual}/{total} files")
         while len(self.state.work_queue) > 0:
             mp3 = self.state.work_queue[0]
             match mp3.state:
                 case Mp3.State.CREATED:
-                    file_name = f"{mp3.artist} - {mp3.title}.mp3"
+                    file_name = Path(
+                        Config.FILE_NAME_TEMPLATE.format(
+                            artist=mp3.artist,
+                            title=mp3.title,
+                            album=mp3.album if mp3.album is not None else "",
+                        )
+                        + ".mp3"
+                    )
                     file_name = utils.fix_file_name(file_name)
-                    file_path: Path = Path(Config.DOWNLOAD_FOLDER, file_name)
-                    mp3.file_path = file_path
-                    url = f"https://music.youtube.com/watch?v={mp3.url_id}"
+                    mp3.file_path = Config.DOWNLOAD_FOLDER_PATH / file_name
+
                     downloads.download_yt_audio(self.logger, mp3.url_id, mp3.file_path)
                     mp3.state = Mp3.State.DOWNLOADED
                 case Mp3.State.DOWNLOADED:
@@ -128,6 +146,7 @@ class App:
                     mp3.state = Mp3.State.DONE
                 case Mp3.State.DONE:
                     self.state.work_queue.popleft()
+                    actual += 1
                     self.progress_bar.update(
-                        increment, prefix=f"Downloaded {mp3.title}"
+                        increment, prefix=f"Processing {actual}/{total} files"
                     )

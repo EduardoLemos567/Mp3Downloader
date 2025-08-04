@@ -27,7 +27,7 @@ def scrap_playlist(
     mp3s = []
     if "tracks" not in js:
         return mp3s
-    for item in js["tracks"][:1]:  # limit to 5
+    for item in js["tracks"]:
         mp3 = Mp3(item["videoId"], item["title"])
         mp3.artist = item["artists"][0]["name"]
         if item["album"] is not None:
