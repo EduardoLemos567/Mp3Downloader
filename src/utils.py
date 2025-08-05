@@ -8,7 +8,6 @@ def setup_logger(
     file_level: int = logging.WARNING,
     console_level: int = logging.INFO,
 ) -> logging.Logger:
-    """Set up a logger that outputs to both console and file"""
     # Create logger
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -38,13 +37,11 @@ def setup_logger(
 
 
 def read_json_file(file_path: Path) -> dict[str, typing.Any]:
-    """Read a JSON file and return its content"""
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
 def write_json_file(file_path: Path, data: dict[str, typing.Any]) -> None:
-    """Write data to a JSON file"""
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 

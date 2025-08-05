@@ -1,5 +1,4 @@
 import sys, logging, utils
-from logging import Logger
 from pathlib import Path
 from logic import update_tags
 from data.state import State
@@ -19,9 +18,17 @@ class App:
         console_log_level: int = logging.INFO,
         file_log_level: int = logging.WARNING,
     ):
-        self.logger: Logger
-        self.progress_bar: progress_bar.ProgressBar
-        self.state: State
+        self._setup_logger(console_log_level, file_log_level)
+        self.progress_bar = progress_bar.ProgressBar(total=1000)
+        self._setup_state()
+        playlist_url_id = utils.grab_id_from_url(playlist_url)
+        # Check if id change from previous run and remove json file to redownload.
+        if playlist_url_id != self.state.playlist_url_id:
+            self.state.playlist_url_id = playlist_url_id
+            Config.PLAYLIST_JSON_PATH.unlink(missing_ok=True)
+        self._remove_missing_files()
+
+    def _setup_logger(self, console_log_level, file_log_level):
         try:
             self.logger = utils.setup_logger(
                 AppMeta.NAME, Config.LOG_FILE_PATH, file_log_level, console_log_level
@@ -29,7 +36,8 @@ class App:
         except Exception as e:
             print(f"Failed to set up logger: '{e}'. Exiting.")
             self._quit(1)
-        self.progress_bar = progress_bar.ProgressBar(total=1000)
+
+    def _setup_state(self):
         if Config.CONTROL_FILE_PATH.exists():
             try:
                 self.state = self._load_state()
@@ -41,13 +49,13 @@ class App:
                 self._quit(1)
         else:
             self.state = State()
-        playlist_url_id = utils.grab_id_from_url(playlist_url)
-        # Check if id change from previous run and remove json file to redownload.
-        if playlist_url_id != self.state.playlist_url_id:
-            self.state.playlist_url_id = playlist_url_id
-            Config.PLAYLIST_JSON_PATH.unlink(missing_ok=True)
+
+    def _remove_missing_files(self):
         # Remove Mp3 that were DOWNLOADED, if they are missing.
-        for mp3 in self.state.mp3s:
+        i = len(self.state.mp3s)
+        while i > 0:
+            i -= 1
+            mp3 = self.state.mp3s[i]
             if mp3.state in (Mp3.State.DOWNLOADED, Mp3.State.DONE):
                 print(mp3)
                 assert mp3.file_path is not None
@@ -125,28 +133,34 @@ class App:
             mp3 = self.state.work_queue[0]
             match mp3.state:
                 case Mp3.State.CREATED:
-                    file_name = Path(
-                        Config.FILE_NAME_TEMPLATE.format(
-                            artist=mp3.artist,
-                            title=mp3.title,
-                            album=mp3.album if mp3.album is not None else "",
-                        )
-                        + ".mp3"
-                    )
-                    file_name = utils.fix_file_name(file_name)
-                    mp3.file_path = Config.DOWNLOAD_FOLDER_PATH / file_name
-
-                    downloads.download_yt_audio(self.logger, mp3.url_id, mp3.file_path)
-                    mp3.state = Mp3.State.DOWNLOADED
+                    self._download_file(mp3)
                 case Mp3.State.DOWNLOADED:
-                    tags = {"artist": mp3.artist, "title": mp3.title}
-                    if mp3.album is not None:
-                        tags["album"] = mp3.album
-                    update_tags.update_mp3_tags(self.logger, mp3.file_path, tags)  # type: ignore
-                    mp3.state = Mp3.State.DONE
+                    self._update_tags(mp3)
                 case Mp3.State.DONE:
                     self.state.work_queue.popleft()
                     actual += 1
                     self.progress_bar.update(
                         increment, prefix=f"Processing {actual}/{total} files"
                     )
+
+    def _download_file(self, mp3):
+        file_name = Path(
+            Config.FILE_NAME_TEMPLATE.format(
+                artist=mp3.artist,
+                title=mp3.title,
+                album=mp3.album if mp3.album is not None else "",
+            )
+            + ".mp3"
+        )
+        file_name = utils.fix_file_name(file_name)
+        mp3.file_path = Config.DOWNLOAD_FOLDER_PATH / file_name
+
+        downloads.download_yt_audio(self.logger, mp3.url_id, mp3.file_path)
+        mp3.state = Mp3.State.DOWNLOADED
+
+    def _update_tags(self, mp3):
+        tags = {"artist": mp3.artist, "title": mp3.title}
+        if mp3.album is not None:
+            tags["album"] = mp3.album
+        update_tags.update_mp3_tags(self.logger, mp3.file_path, tags)  # type: ignore
+        mp3.state = Mp3.State.DONE

@@ -17,24 +17,6 @@ from mutagen.id3 import (
 
 
 def update_mp3_tags(logger: Logger, file_path: Path, tags: dict[str, str]):
-    """
-    Update ID3 tags for an MP3 file that will be recognized by music players.
-
-    Args:
-        filepath (str): Path to MP3 file
-        tags (dict): Dictionary containing tags to update. Supported keys:
-            - title: Song title
-            - artist: Lead performer
-            - album: Album name
-            - album_artist: Album artist (for compilations)
-            - year: Release year
-            - track_number: Track number (can be 'x/y' for track numbering)
-            - genre: Music genre
-            - composer: Composer name
-            - comment: Text comment
-            - lyrics: Unsynced lyrics
-            - cover_art: Path to cover image file
-    """
     try:
         # Load the MP3 file with ID3 tags
         audio = MP3(file_path, ID3=ID3)
