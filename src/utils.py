@@ -8,6 +8,18 @@ def setup_logger(
     file_level: int = logging.WARNING,
     console_level: int = logging.INFO,
 ) -> logging.Logger:
+    """
+    Sets up a logger with both file and console handlers.
+
+    Args:
+        name (str): The name of the logger.
+        file_path (Path): The path to the log file.
+        file_level (int): The logging level for the file handler.
+        console_level (int): The logging level for the console handler.
+
+    Returns:
+        logging.Logger: The configured logger.
+    """
     # Create logger
     logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
@@ -37,16 +49,41 @@ def setup_logger(
 
 
 def read_json_file(file_path: Path) -> dict[str, typing.Any]:
+    """
+    Reads a JSON file and returns its content as a dictionary.
+
+    Args:
+        file_path (Path): The path to the JSON file.
+
+    Returns:
+        dict[str, typing.Any]: The content of the JSON file.
+    """
     with open(file_path, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
 def write_json_file(file_path: Path, data: dict[str, typing.Any]) -> None:
+    """
+    Writes a dictionary to a JSON file.
+
+    Args:
+        file_path (Path): The path to the JSON file.
+        data (dict[str, typing.Any]): The dictionary to write to the JSON file.
+    """
     with open(file_path, "w", encoding="utf-8") as file:
         json.dump(data, file, indent=2)
 
 
 def grab_id_from_url(playlist_url: str) -> str:
+    """
+    Extracts the playlist ID from a YouTube Music playlist URL.
+
+    Args:
+        playlist_url (str): The URL of the YouTube Music playlist.
+
+    Returns:
+        str: The playlist ID.
+    """
     del1 = "list="
     del2 = "&"
     a = playlist_url.find(del1)
@@ -65,11 +102,11 @@ def fix_file_name(file_name: Path, replacement: str = "_") -> Path:
     Sanitize a filename to make it valid across different operating systems.
 
     Args:
-        filename: The original filename to sanitize
-        replacement: Character to replace invalid characters with (default: "_")
+        file_name (Path): The original filename to sanitize.
+        replacement (str): Character to replace invalid characters with (default: "_").
 
     Returns:
-        A sanitized filename that should work across Windows, Linux, and macOS
+        Path: A sanitized filename that should work across Windows, Linux, and macOS.
     """
     name = file_name.stem
     # Normalize unicode characters (convert accents to ASCII equivalents where possible)

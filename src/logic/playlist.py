@@ -8,6 +8,20 @@ from data.mp3 import Mp3
 def scrap_playlist(
     playlist_id: str, logger: Logger | None, playlist_path: Path
 ) -> typing.List[Mp3]:
+    """
+    Scrapes a YouTube Music playlist to extract song information.
+
+    It first checks if the playlist data is already cached locally. If not, or if the
+    playlist ID has changed, it fetches the data from YouTube Music and caches it.
+
+    Args:
+        playlist_id (str): The ID of the YouTube Music playlist.
+        logger (Logger | None): The logger to use for logging.
+        playlist_path (Path): The path to the cached playlist data.
+
+    Returns:
+        typing.List[Mp3]: A list of Mp3 objects representing the songs in the playlist.
+    """
     need_download = True
     js = {}
     if playlist_path.exists():

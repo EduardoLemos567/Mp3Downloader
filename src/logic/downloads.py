@@ -5,9 +5,17 @@ import yt_dlp
 
 
 def download_yt_audio(logger: Logger, url: str, output_path: Path) -> None:
+    """
+    Downloads audio from a YouTube URL and saves it as an MP3 file.
+
+    Args:
+        logger (Logger): The logger to use for logging.
+        url (str): The YouTube URL to download from.
+        output_path (Path): The path to save the downloaded MP3 file to.
+    """
     if output_path.exists():
         logger.error(f"Output path already exists {output_path}")
-        raise Exception("Output path already exists {output_path}")
+        raise Exception(f"Output path already exists {output_path}")
 
     logger.debug(f"Starting download for: {url}")
 

@@ -4,6 +4,13 @@ from constants import AppMeta
 
 
 class Config:
+    """
+    Configuration class for the application.
+
+    This class holds all the configuration constants used throughout the application,
+    such as file paths and templates.
+    """
+
     # Define the configuration for the application.
     # Where to save the downloaded files.
     DOWNLOAD_FOLDER: typing.Final[str] = "./downloads"

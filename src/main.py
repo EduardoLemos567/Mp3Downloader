@@ -5,5 +5,8 @@ YOUR_PLAYLIST_LINK = "https://music.youtube.com/playlist?list=PL01A6QrFoyxPl3Ih-
 import logging
 
 if __name__ == "__main__":
+    """
+    Main entry point of the application.
+    """
     app = App(YOUR_PLAYLIST_LINK, logging.DEBUG)
     app.run()
