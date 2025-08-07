@@ -11,6 +11,8 @@ class Config:
     such as file paths and templates.
     """
 
+    PLAYLIST_URL_FILE: typing.Final[str] = "playlist_url.txt"
+    PLAYLIST_URL_FILE_PATH: typing.Final[Path] = Path(PLAYLIST_URL_FILE)
     # Define the configuration for the application.
     # Where to save the downloaded files.
     DOWNLOAD_FOLDER: typing.Final[str] = "./downloads"

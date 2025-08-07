@@ -1,6 +1,7 @@
 __pycache__/
 *.pyc
-DownloadMp3.code-workspace
 .vscode/
 temp/
 downloads/
+DownloadMp3.code-workspace
+playlist_url.txt

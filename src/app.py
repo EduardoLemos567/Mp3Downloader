@@ -22,7 +22,6 @@ class App:
 
     def __init__(
         self,
-        playlist_url: str,
         console_log_level: int = logging.INFO,
         file_log_level: int = logging.WARNING,
     ):
@@ -37,7 +36,7 @@ class App:
         self._setup_logger(console_log_level, file_log_level)
         self._progress_bar = progress_bar.ProgressBar(total=1000)
         self._setup_state()
-        playlist_url_id = utils.grab_id_from_url(playlist_url)
+        playlist_url_id = self._load_playlist_id()
         # Check if id change from previous run and remove json file to redownload.
         if playlist_url_id != self._state.playlist_url_id:
             self._state.playlist_url_id = playlist_url_id
@@ -80,6 +79,21 @@ class App:
                 self._quit(1)
         else:
             self._state = State()
+
+    def _load_playlist_id(self) -> str:
+        """
+        Loads the playlist ID from the URL specified in the playlist URL file.
+
+        Reads the playlist URL from the file defined in `Config.PLAYLIST_URL_FILE_PATH`,
+        extracts the playlist ID from the URL, and returns it.
+
+        Returns:
+            str: The ID of the YouTube playlist.
+        """
+        with Config.PLAYLIST_URL_FILE_PATH.open("r", encoding="utf-8") as file:
+            playlist_url = file.read().strip()
+        playlist_url_id = utils.grab_id_from_url(playlist_url)
+        return playlist_url_id
 
     def _remove_missing_files(self):
         """
